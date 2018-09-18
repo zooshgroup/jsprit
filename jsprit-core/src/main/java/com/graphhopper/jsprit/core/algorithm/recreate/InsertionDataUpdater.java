@@ -23,6 +23,7 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
+import com.graphhopper.jsprit.core.problem.vehicle.VehicleUserDataInterface;
 
 import java.util.*;
 
@@ -82,6 +83,12 @@ class InsertionDataUpdater {
             List<String> failedConstraintNames = new ArrayList<>();
             while(iterator.hasNext()){
                 VersionedInsertionData versionedIData = iterator.next();
+                
+                VehicleUserDataInterface vehicleUserData = (VehicleUserDataInterface) versionedIData.getRoute().getVehicle().getUserData();
+                if (!vehicleUserData.canInsert(versionedIData.getRoute(),j)) {
+                	continue;
+                }
+                
                 if(bestRoute != null){
                     if(versionedIData.getRoute() == bestRoute){
                         continue;
