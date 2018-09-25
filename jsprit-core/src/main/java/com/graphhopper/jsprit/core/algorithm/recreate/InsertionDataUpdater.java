@@ -84,10 +84,6 @@ class InsertionDataUpdater {
             while(iterator.hasNext()){
                 VersionedInsertionData versionedIData = iterator.next();
                 
-                VehicleUserDataInterface vehicleUserData = (VehicleUserDataInterface) versionedIData.getRoute().getVehicle().getUserData();
-                if (!vehicleUserData.canInsert(versionedIData.getRoute(),j)) {
-                	continue;
-                }
                 
                 if(bestRoute != null){
                     if(versionedIData.getRoute() == bestRoute){
@@ -122,6 +118,12 @@ class InsertionDataUpdater {
                         } else continue;
                     }
                 }
+
+				VehicleUserDataInterface vehicleUserData = (VehicleUserDataInterface) versionedIData.getRoute().getVehicle().getUserData();
+				if (!vehicleUserData.canInsert(versionedIData.getRoute(), versionedIData.getiData().getSelectedVehicle(), j)) {
+					continue;
+				}                
+                
                 int currentDataVersion = updates.get(versionedIData.getRoute());
                 if(versionedIData.getVersion() == currentDataVersion){
                     if(best == null) {
