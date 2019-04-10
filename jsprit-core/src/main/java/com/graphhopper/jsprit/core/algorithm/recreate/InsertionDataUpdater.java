@@ -120,9 +120,9 @@ class InsertionDataUpdater {
                 }
 
 				VehicleUserDataInterface vehicleUserData = (VehicleUserDataInterface) versionedIData.getRoute().getVehicle().getUserData();
-				if (!vehicleUserData.canInsert(versionedIData.getRoute(), versionedIData.getiData().getSelectedVehicle(), j)) {
+				if (vehicleUserData != null && !vehicleUserData.canInsert(versionedIData.getRoute(), versionedIData.getiData().getSelectedVehicle(), j)) {
 					continue;
-				}                
+				}        
                 
                 int currentDataVersion = updates.get(versionedIData.getRoute());
                 if(versionedIData.getVersion() == currentDataVersion){
