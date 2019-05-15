@@ -21,8 +21,6 @@ import com.graphhopper.jsprit.core.problem.AbstractVehicle;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.job.Break;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
@@ -47,9 +45,6 @@ public class VehicleImpl extends AbstractVehicle {
         private String id = "noVehicle";
 
         private VehicleType type = VehicleTypeImpl.Builder.newInstance("noType").build();
-
-        public NoVehicle() {
-        }
 
         @Override
         public double getEarliestDeparture() {
@@ -110,8 +105,6 @@ public class VehicleImpl extends AbstractVehicle {
      */
     public static class Builder {
 
-        static final Logger log = LoggerFactory.getLogger(Builder.class.getName());
-
         private String id;
 
         private double earliestStart = 0.0;
@@ -138,6 +131,24 @@ public class VehicleImpl extends AbstractVehicle {
             super();
             this.id = id;
             if (id == null) throw new IllegalArgumentException("Vehicle id must not be null.");
+        }
+
+        /**
+         * This can be used to initialize the new vehicle (to be built) with another vehicle.
+         *
+         * @param baseVehicle vehicle to build from
+         */
+        private Builder(Vehicle baseVehicle) {
+            this.id = baseVehicle.getId();
+            this.earliestStart = baseVehicle.getEarliestDeparture();
+            this.latestArrival = baseVehicle.getLatestArrival();
+            this.returnToDepot = baseVehicle.isReturnToDepot();
+            this.type = baseVehicle.getType();
+            this.skills = baseVehicle.getSkills();
+            this.startLocation = baseVehicle.getStartLocation();
+            this.endLocation = baseVehicle.getEndLocation();
+            this.aBreak = baseVehicle.getBreak();
+            this.userData = baseVehicle.getUserData();
         }
 
         /**
@@ -291,6 +302,16 @@ public class VehicleImpl extends AbstractVehicle {
             return new Builder(vehicleId);
         }
 
+        /**
+         * Returns new instance of vehicle builder and initializes every attribute with a attributes of baseVehicle
+         *
+         * @param baseVehicle base vehicle that is used to initialize the vehicle builder
+         * @return this builder
+         */
+        public static Builder newInstance(Vehicle baseVehicle) {
+            return new Builder(baseVehicle);
+        }
+
         public Builder addSkills(Skills skills) {
             this.skillBuilder.addAllSkills(skills.values());
             return this;
@@ -300,6 +321,16 @@ public class VehicleImpl extends AbstractVehicle {
             this.aBreak = aBreak;
             return this;
         }
+    }
+
+    /**
+     * Returns a simple copy of vehicle.
+     *
+     * @param vehicle to copy
+     * @return copied vehicle
+     */
+    public static Vehicle copyOf(Vehicle vehicle) {
+        return VehicleImpl.Builder.newInstance(vehicle).build();
     }
 
     /**

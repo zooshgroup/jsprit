@@ -115,15 +115,15 @@ public class VehicleRoute {
 
         private End end;
 
-        private TourActivities tourActivities = new TourActivities();
+        private final TourActivities tourActivities = new TourActivities();
 
-        private TourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
-
-        private TourShipmentActivityFactory shipmentActivityFactory = new DefaultShipmentActivityFactory();
-
-        private Set<Shipment> openShipments = new HashSet<Shipment>();
+        private final Set<Shipment> openShipments = new HashSet<Shipment>();
 
         private JobActivityFactory jobActivityFactory = new JobActivityFactory() {
+            
+            private final TourShipmentActivityFactory shipmentActivityFactory = new DefaultShipmentActivityFactory();
+            
+            private final  TourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
 
             @Override
             public List<AbstractActivity> createActivities(Job job) {
@@ -367,7 +367,7 @@ public class VehicleRoute {
      * @return list of tourActivities
      */
     public List<TourActivity> getActivities() {
-        return Collections.unmodifiableList(tourActivities.getActivities());
+        return tourActivities.getActivities();
     }
 
     /**
