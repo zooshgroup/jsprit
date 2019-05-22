@@ -18,24 +18,21 @@
 
 package com.graphhopper.jsprit.core.algorithm;
 
+import java.util.Collection;
+import java.util.Random;
+
 import com.graphhopper.jsprit.core.algorithm.acceptor.SchrimpfAcceptance;
 import com.graphhopper.jsprit.core.algorithm.acceptor.SolutionAcceptor;
 import com.graphhopper.jsprit.core.algorithm.listener.AlgorithmStartsListener;
 import com.graphhopper.jsprit.core.algorithm.recreate.InsertionStrategy;
 import com.graphhopper.jsprit.core.algorithm.recreate.VehicleSwitched;
-import com.graphhopper.jsprit.core.algorithm.state.*;
+import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
-import com.graphhopper.jsprit.core.problem.constraint.SwitchNotFeasible;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
-import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
-
-import java.util.*;
+import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
 
 /**
  * Created by schroeder on 10.12.14.
@@ -59,6 +56,8 @@ public class PrettyAlgorithmBuilder {
     private boolean coreStuff = false;
 
     private SolutionCostCalculator objectiveFunction = null;
+    
+    private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
 
     public static PrettyAlgorithmBuilder newInstance(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
         return new PrettyAlgorithmBuilder(vrp, fleetManager, stateManager, constraintManager);
@@ -81,6 +80,11 @@ public class PrettyAlgorithmBuilder {
         searchStrategyManager.addStrategy(strategy, weight);
         return this;
     }
+    
+	public PrettyAlgorithmBuilder withActivityPolicy(ActivityPolicy activityPolicy) {
+		this.activityPolicy = activityPolicy;
+		return this;
+	}
 
     public PrettyAlgorithmBuilder constructInitialSolutionWith(InsertionStrategy insertionStrategy, SolutionCostCalculator objFunction) {
         this.iniInsertionStrategy = insertionStrategy;
@@ -90,7 +94,7 @@ public class PrettyAlgorithmBuilder {
 
     public VehicleRoutingAlgorithm build() {
         if (coreStuff) {
-            AlgorithmUtil.addCoreConstraints(constraintManager,stateManager,vrp);
+        	AlgorithmUtil.addCoreConstraints(activityPolicy, constraintManager, stateManager, vrp);
         }
         VehicleRoutingAlgorithm vra = new VehicleRoutingAlgorithm(vrp, searchStrategyManager, objectiveFunction);
         vra.addListener(stateManager);

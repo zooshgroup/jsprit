@@ -18,31 +18,31 @@
 
 package com.graphhopper.jsprit.core.algorithm;
 
-import com.graphhopper.jsprit.core.algorithm.state.*;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
-import com.graphhopper.jsprit.core.problem.constraint.SwitchNotFeasible;
-import com.graphhopper.jsprit.core.problem.job.Job;
-import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
-import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
-import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
-import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.algorithm.state.UpdateActivityTimes;
+import com.graphhopper.jsprit.core.algorithm.state.UpdateEndLocationIfRouteIsOpen;
+import com.graphhopper.jsprit.core.algorithm.state.UpdateFutureWaitingTimes;
+import com.graphhopper.jsprit.core.algorithm.state.UpdateVariableCosts;
+import com.graphhopper.jsprit.core.algorithm.state.UpdateVehicleDependentPracticalTimeWindows;
+import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
+import com.graphhopper.jsprit.core.problem.constraint.SwitchNotFeasible;
+import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
+import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
 
 /**
  * Created by schroeder on 02/08/16.
  */
 public class AlgorithmUtil {
 
-    public static void addCoreConstraints(ConstraintManager constraintManager, StateManager stateManager, final VehicleRoutingProblem vrp){
+	public static void addCoreConstraints(ActivityPolicy activityPolicy, ConstraintManager constraintManager, StateManager stateManager, final VehicleRoutingProblem vrp) {
         constraintManager.addTimeWindowConstraint();
         constraintManager.addLoadConstraint();
         constraintManager.addSkillsConstraint();
@@ -73,8 +73,8 @@ public class AlgorithmUtil {
         stateManager.addStateUpdater(twUpdater);
         stateManager.updateSkillStates();
 
-        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), ActivityTimeTracker.ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS, vrp.getActivityCosts()));
-        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager));
+        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), activityPolicy, vrp.getActivityCosts()));
+		stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager, activityPolicy));
         stateManager.addStateUpdater(new UpdateFutureWaitingTimes(stateManager, vrp.getTransportCosts()));
     }
 
