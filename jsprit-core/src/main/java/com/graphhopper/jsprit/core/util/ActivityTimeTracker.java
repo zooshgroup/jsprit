@@ -261,7 +261,7 @@ public class ActivityTimeTracker implements ActivityVisitor {
 			}
 
 			ActivityTime activityTime = new ActivityTime(nextActStartTime,
-					nextActStartTime + activityCosts.getActivityDuration(activity, nextActStartTime, route.getDriver(), route.getVehicle()), activity, operationEndTime);
+					nextActStartTime + activityCosts.getActivityDuration(nextActivity, nextActStartTime, route.getDriver(), route.getVehicle()), activity, operationEndTime);
 			backwardActivityMap.put(nextActivity, activityTime);
 
 			nextActStartTime = operationStartTime;
