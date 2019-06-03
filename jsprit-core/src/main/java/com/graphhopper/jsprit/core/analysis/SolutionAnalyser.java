@@ -531,7 +531,7 @@ public class SolutionAnalyser {
         this.stateManager.updateLoadStates();
         this.stateManager.updateSkillStates();
         activityPolicy = ActivityTimeTracker.ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
-        this.stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), activityPolicy, vrp.getActivityCosts()));
+        this.stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), vrp.getActivityCosts()));
         this.stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager));
         waitingTimeId = stateManager.createStateId("waiting-time");
         transportTimeId = stateManager.createStateId("transport-time");

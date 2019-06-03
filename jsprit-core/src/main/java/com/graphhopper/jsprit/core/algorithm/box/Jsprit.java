@@ -44,6 +44,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.FiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.InfiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
+import com.graphhopper.jsprit.core.util.ActivityPolicyConfiguration;
 import com.graphhopper.jsprit.core.util.NoiseMaker;
 import com.graphhopper.jsprit.core.util.RandomNumberGeneration;
 import com.graphhopper.jsprit.core.util.Solutions;
@@ -129,7 +130,9 @@ public class Jsprit {
         STRING_L_MAX("string_lmax"),
         MIN_UNASSIGNED("min_unassigned"),
         PROPORTION_UNASSIGNED("proportion_unassigned"),
-        ACTIVITY_POLICY("activity_policy");
+        ACTIVITY_POLICY("activity_policy"),
+        ACTIVITY_POLICY_CONFIGURATION_FACTORY_UNLOAD_TIME_FACTOR("activity_policy_configuration_factory_unload_time_factor"),
+        ACTIVITY_POLICY_CONFIGURATION_FACTORY_STATIC("activity_policy_configuration_factory_static");
 
         String paraName;
 
@@ -659,7 +662,10 @@ public class Jsprit {
 
         PrettyAlgorithmBuilder prettyBuilder = PrettyAlgorithmBuilder.newInstance(vrp, vehicleFleetManager, stateManager, constraintManager);
         prettyBuilder.withActivityPolicy(ActivityPolicy.valueOf(properties.getProperty(Parameter.ACTIVITY_POLICY.toString())));
-        prettyBuilder.setRandom(random);
+		prettyBuilder.withActivityPolicyConfiguration(
+				new ActivityPolicyConfiguration(properties.getProperty(Parameter.ACTIVITY_POLICY_CONFIGURATION_FACTORY_UNLOAD_TIME_FACTOR.toString()),
+						properties.getProperty(Parameter.ACTIVITY_POLICY_CONFIGURATION_FACTORY_STATIC.toString())));
+		prettyBuilder.setRandom(random);
         if (addCoreConstraints) {
             prettyBuilder.addCoreStateAndConstraintStuff();
         }

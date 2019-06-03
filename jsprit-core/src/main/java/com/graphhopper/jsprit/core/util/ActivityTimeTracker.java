@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.cost.ForwardTransportTime;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -103,6 +104,8 @@ public class ActivityTimeTracker implements ActivityVisitor {
 
 	private int bestRun;
 	private Map<TourActivity, ActivityTime> activityTimeMap;
+	private ActivityPolicyConfiguration activityPolicyConfiguration;
+	private int capacity;
 
 	public ActivityTimeTracker(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
 		super();
@@ -110,11 +113,13 @@ public class ActivityTimeTracker implements ActivityVisitor {
 		this.activityCosts = activityCosts;
 	}
 
-	public ActivityTimeTracker(ForwardTransportTime transportTime, ActivityPolicy activityPolicy, VehicleRoutingActivityCosts activityCosts) {
+	public ActivityTimeTracker(ForwardTransportTime transportTime, ActivityPolicy activityPolicy, ActivityPolicyConfiguration activityPolicyConfiguration,
+			VehicleRoutingActivityCosts activityCosts) {
 		super();
 		this.transportTime = transportTime;
 		this.activityPolicy = activityPolicy;
 		this.activityCosts = activityCosts;
+		this.activityPolicyConfiguration = activityPolicyConfiguration;
 	}
 
 	public double getActArrTime() {
@@ -134,11 +139,14 @@ public class ActivityTimeTracker implements ActivityVisitor {
 
 			prevAct = firstAct.getPrevAct();
 			startAtPrevAct = firstAct.getStartAtPrevAct();
+			actArrTime = firstAct.getStartAtPrevAct();
 			actEndTime = firstAct.getStartAtPrevAct();
 			this.route = route;
+			this.capacity = 0;
 		} else {
 			prevAct = route.getStart();
 			startAtPrevAct = prevAct.getEndTime();
+			actArrTime = startAtPrevAct;
 			actEndTime = startAtPrevAct;
 			this.route = route;
 			beginFirst = true;
@@ -282,6 +290,15 @@ public class ActivityTimeTracker implements ActivityVisitor {
 		return new AbstractMap.SimpleEntry<>(totalWaitingTime, backwardActivityMap);
 	}
 
+	/**
+	 * 
+	 * @param capacity
+	 * @return adding up milk capacities: NORMAL, GMO, COSHER
+	 */
+	private int sumCapacity(Capacity capacity) {
+		return capacity.get(0) + capacity.get(1) + capacity.get(2);
+	}
+
 	@Override
 	public void visit(TourActivity activity) {
 		if (activityPolicy == ActivityPolicy.SHORTEST_WAIT_TIME) {
@@ -291,6 +308,7 @@ public class ActivityTimeTracker implements ActivityVisitor {
 			startAtPrevAct = act.getActEndTime();
 			actArrTime = act.getActArrTime();
 			actEndTime = act.getActEndTime();
+			capacity += sumCapacity(activity.getSize());
 		} else {
 			if (!beginFirst)
 				throw new IllegalStateException("never called begin. this however is essential here");
@@ -321,10 +339,19 @@ public class ActivityTimeTracker implements ActivityVisitor {
 		double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), route.getEnd().getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
 		double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
 
-		actArrTime = arrivalTimeAtCurrAct;
-		actEndTime = arrivalTimeAtCurrAct;
+		if (this.activityPolicyConfiguration.getFactoryUnloadTimeFactor() != null && this.activityPolicyConfiguration.getFactoryStaticTime() != null) {
+			double operationTime = this.capacity * this.activityPolicyConfiguration.getFactoryUnloadTimeFactor();
+			double staticTime = this.activityPolicyConfiguration.getFactoryStaticTime();
 
-		beginFirst = false;
+			actArrTime = arrivalTimeAtCurrAct;
+			actEndTime = arrivalTimeAtCurrAct + operationTime + staticTime;
+		} else {
+			actArrTime = arrivalTimeAtCurrAct;
+			actEndTime = arrivalTimeAtCurrAct;
+
+			beginFirst = false;
+		}
+
 	}
 
 }
