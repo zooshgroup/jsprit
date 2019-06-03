@@ -46,6 +46,8 @@ import java.util.*;
  */
 public class StateManager implements RouteAndActivityStateGetter, IterationStartsListener, RuinListener, InsertionStartsListener, JobInsertedListener, InsertionEndsListener {
 
+	private RouteActivityVisitor routeActivityTimeVisitor = new RouteActivityVisitor();
+	
     private RouteActivityVisitor routeActivityVisitor = new RouteActivityVisitor();
 
     private ReverseRouteActivityVisitor revRouteActivityVisitor = new ReverseRouteActivityVisitor();
@@ -527,7 +529,12 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
      * @param activityVistor the activity-visitor to be added
      */
     void addActivityVisitor(ActivityVisitor activityVistor) {
-        routeActivityVisitor.addActivityVisitor(activityVistor);
+    	if (activityVistor instanceof UpdateActivityTimes) {
+    		routeActivityTimeVisitor.addActivityVisitor(activityVistor);
+    	} else {
+    		routeActivityVisitor.addActivityVisitor(activityVistor);	
+    	}
+        
     }
 
     /**
@@ -557,6 +564,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
     public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
 //		log.debug("insert " + job2insert + " in " + inRoute);
         insertionListeners.informJobInserted(job2insert, inRoute, additionalCosts, additionalTime);
+        routeActivityTimeVisitor.visit(inRoute);
         for (RouteVisitor v : routeVisitors) {
             v.visit(inRoute);
         }
@@ -568,6 +576,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
         insertionListeners.informInsertionStarts(vehicleRoutes, unassignedJobs);
         for (VehicleRoute route : vehicleRoutes) {
+        	routeActivityTimeVisitor.visit(route);
             for (RouteVisitor v : routeVisitors) {
                 v.visit(route);
             }
