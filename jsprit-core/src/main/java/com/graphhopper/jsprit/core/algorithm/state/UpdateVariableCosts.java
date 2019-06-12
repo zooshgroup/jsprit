@@ -24,6 +24,7 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
+import com.graphhopper.jsprit.core.util.ActivityPolicyConfiguration;
 
 
 /**
@@ -48,8 +49,6 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
 
     private double startTimeAtPrevAct = 0.0;
 
-    private ActivityTimeTracker timeTracker;
-
     /**
      * Updates total costs (i.e. transport and activity costs) at route and activity level.
      * <p>
@@ -65,30 +64,26 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
         this.activityCost = activityCost;
         this.transportCost = transportCost;
         this.states = states;
-        timeTracker = new ActivityTimeTracker(transportCost, activityCost);
     }
 
-    public UpdateVariableCosts(VehicleRoutingActivityCosts activityCosts, VehicleRoutingTransportCosts transportCosts, StateManager stateManager, ActivityTimeTracker.ActivityPolicy activityPolicy) {
+	public UpdateVariableCosts(VehicleRoutingActivityCosts activityCosts, VehicleRoutingTransportCosts transportCosts, StateManager stateManager,
+			ActivityTimeTracker.ActivityPolicy activityPolicy, ActivityPolicyConfiguration activityPolicyConfiguration) {
         this.activityCost = activityCosts;
         this.transportCost = transportCosts;
         this.states = stateManager;
-        timeTracker = new ActivityTimeTracker(transportCosts, activityPolicy, activityCosts);
     }
 
     @Override
     public void begin(VehicleRoute route) {
         vehicleRoute = route;
-        timeTracker.begin(route);
         prevAct = route.getStart();
-        startTimeAtPrevAct = timeTracker.getActEndTime();
+        startTimeAtPrevAct = route.getStart().getEndTime();
     }
 
     @Override
     public void visit(TourActivity act) {
-        timeTracker.visit(act);
-
         double transportCost = this.transportCost.getTransportCost(prevAct.getLocation(), act.getLocation(), startTimeAtPrevAct, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
-        double actCost = activityCost.getActivityCost(act, timeTracker.getActArrTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+        double actCost = activityCost.getActivityCost(act, act.getArrTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
 
         totalOperationCost += transportCost;
         totalOperationCost += actCost;
@@ -96,14 +91,13 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
         states.putInternalTypedActivityState(act, InternalStates.COSTS, totalOperationCost);
 
         prevAct = act;
-        startTimeAtPrevAct = timeTracker.getActEndTime();
+        startTimeAtPrevAct = act.getEndTime();
     }
 
     @Override
     public void finish() {
-        timeTracker.finish();
         double transportCost = this.transportCost.getTransportCost(prevAct.getLocation(), vehicleRoute.getEnd().getLocation(), startTimeAtPrevAct, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
-        double actCost = activityCost.getActivityCost(vehicleRoute.getEnd(), timeTracker.getActEndTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+        double actCost = activityCost.getActivityCost(vehicleRoute.getEnd(), vehicleRoute.getEnd().getArrTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
 
         totalOperationCost += transportCost;
         totalOperationCost += actCost;

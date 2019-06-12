@@ -17,6 +17,10 @@
  */
 package com.graphhopper.jsprit.core.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.cost.ForwardTransportTime;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -25,94 +29,259 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public class ActivityTimeTracker implements ActivityVisitor {
 
-    public static enum ActivityPolicy {
+	public enum ActivityPolicy {
 
-        AS_SOON_AS_TIME_WINDOW_OPENS, AS_SOON_AS_ARRIVED
+		AS_SOON_AS_TIME_WINDOW_OPENS, AS_SOON_AS_ARRIVED, SHORTEST_WAIT_TIME
 
-    }
+	}
 
-    private final ForwardTransportTime transportTime;
+	class ActivityTime {
+		private double actArrTime;
+		private double actEndTime;
+		private TourActivity prevAct;
+		private double startAtPrevAct;
 
-    private final VehicleRoutingActivityCosts activityCosts;
+		public ActivityTime(double actArrTime, double actEndTime, TourActivity prevAct, double startAtPrevAct) {
+			this.actArrTime = actArrTime;
+			this.actEndTime = actEndTime;
+			this.prevAct = prevAct;
+			this.startAtPrevAct = startAtPrevAct;
+		}
 
-    private TourActivity prevAct = null;
+		public double getActArrTime() {
+			return actArrTime;
+		}
 
-    private double startAtPrevAct;
+		public void setActArrTime(double actArrTime) {
+			this.actArrTime = actArrTime;
+		}
 
-    private VehicleRoute route;
+		public double getActEndTime() {
+			return actEndTime;
+		}
 
-    private boolean beginFirst = false;
+		public void setActEndTime(double actEndTime) {
+			this.actEndTime = actEndTime;
+		}
 
-    private double actArrTime;
+		public TourActivity getPrevAct() {
+			return prevAct;
+		}
 
-    private double actEndTime;
+		public void setPrevAct(TourActivity prevAct) {
+			this.prevAct = prevAct;
+		}
 
-    private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
+		public double getStartAtPrevAct() {
+			return startAtPrevAct;
+		}
 
-    public ActivityTimeTracker(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
-        super();
-        this.transportTime = transportTime;
-        this.activityCosts = activityCosts;
-    }
+		public void setStartAtPrevAct(double startAtPrevAct) {
+			this.startAtPrevAct = startAtPrevAct;
+		}
 
-    public ActivityTimeTracker(ForwardTransportTime transportTime, ActivityPolicy activityPolicy, VehicleRoutingActivityCosts activityCosts) {
-        super();
-        this.transportTime = transportTime;
-        this.activityPolicy = activityPolicy;
-        this.activityCosts = activityCosts;
-    }
+	}
 
-    public double getActArrTime() {
-        return actArrTime;
-    }
+	private final ForwardTransportTime forwardTransportTime;
 
-    public double getActEndTime() {
-        return actEndTime;
-    }
+	private final VehicleRoutingActivityCosts activityCosts;
 
-    @Override
-    public void begin(VehicleRoute route) {
-        prevAct = route.getStart();
-        startAtPrevAct = prevAct.getEndTime();
-        actEndTime = startAtPrevAct;
-        this.route = route;
-        beginFirst = true;
-    }
+	private TourActivity prevAct = null;
 
-    @Override
-    public void visit(TourActivity activity) {
-        if (!beginFirst) throw new IllegalStateException("never called begin. this however is essential here");
-        double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), activity.getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
-        double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
+	private double startAtPrevAct;
 
-        actArrTime = arrivalTimeAtCurrAct;
-        double operationStartTime;
+	private VehicleRoute route;
 
-        if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS)) {
-            operationStartTime = Math.max(activity.getTheoreticalEarliestOperationStartTime(), arrivalTimeAtCurrAct);
-        } else if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_ARRIVED)) {
-            operationStartTime = actArrTime;
-        } else operationStartTime = actArrTime;
+	private boolean beginFirst = false;
 
-        double operationEndTime = operationStartTime + activityCosts.getActivityDuration(activity,actArrTime,route.getDriver(),route.getVehicle());
+	private double actArrTime;
 
-        actEndTime = operationEndTime;
+	private double actEndTime;
 
-        prevAct = activity;
-        startAtPrevAct = operationEndTime;
+	private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
 
-    }
+	private Map<TourActivity, ActivityTime> activityTimeMap;
+	private ActivityPolicyConfiguration activityPolicyConfiguration;
+	private int capacity;
 
-    @Override
-    public void finish() {
-        double transportTime = this.transportTime.getTransportTime(prevAct.getLocation(), route.getEnd().getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
-        double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
+	public ActivityTimeTracker(ForwardTransportTime forwardTransportTime, VehicleRoutingActivityCosts activityCosts) {
+		super();
+		this.forwardTransportTime = forwardTransportTime;
+		this.activityCosts = activityCosts;
+	}
 
-        actArrTime = arrivalTimeAtCurrAct;
-        actEndTime = arrivalTimeAtCurrAct;
+	public ActivityTimeTracker(ForwardTransportTime forwardTransportTime, ActivityPolicy activityPolicy, ActivityPolicyConfiguration activityPolicyConfiguration,
+			VehicleRoutingActivityCosts activityCosts) {
+		super();
+		this.forwardTransportTime = forwardTransportTime;
+		this.activityPolicy = activityPolicy;
+		this.activityCosts = activityCosts;
+		this.activityPolicyConfiguration = activityPolicyConfiguration;
+	}
 
-        beginFirst = false;
-    }
+	public double getActArrTime() {
+		return actArrTime;
+	}
 
+	public double getActEndTime() {
+		return actEndTime;
+	}
+
+	@Override
+	public void begin(VehicleRoute route) {
+		if (activityPolicy == ActivityPolicy.SHORTEST_WAIT_TIME && !route.getActivities().isEmpty()) {
+			createShortestWaitTimeRoute(route);
+
+			ActivityTime firstAct = activityTimeMap.get(route.getActivities().get(0));
+
+			prevAct = firstAct.getPrevAct();
+			startAtPrevAct = firstAct.getStartAtPrevAct();
+			actArrTime = firstAct.getStartAtPrevAct();
+			actEndTime = firstAct.getStartAtPrevAct();
+			this.route = route;
+			this.capacity = 0;
+		} else {
+			prevAct = route.getStart();
+			startAtPrevAct = prevAct.getEndTime();
+			actArrTime = startAtPrevAct;
+			actEndTime = startAtPrevAct;
+			this.route = route;
+			beginFirst = true;
+		}
+	}
+
+	private void createShortestWaitTimeRoute(VehicleRoute route) {
+		activityTimeMap = null;
+
+		int waitStartAtOpen = run(route, route.getActivities().get(0).getTheoreticalEarliestOperationStartTime());
+		if (waitStartAtOpen > 0) {
+			TourActivity nextActivity = null;
+			double nextActivityStartTime = 0;
+			for (int i = route.getActivities().size() - 1; i >= 0; i--) {
+				TourActivity activity = route.getActivities().get(i);
+				if (nextActivity != null) {
+
+					double transportTime =
+							this.forwardTransportTime.getTransportTime(activity.getLocation(), nextActivity.getLocation(), nextActivityStartTime, route.getDriver(),
+									route.getVehicle());
+					nextActivityStartTime = nextActivityStartTime - transportTime;
+					double serviceTime = activityCosts.getActivityDuration(activity, nextActivityStartTime, route.getDriver(), route.getVehicle());
+					if (nextActivityStartTime < activity.getTheoreticalLatestOperationStartTime() + serviceTime) {
+
+						nextActivityStartTime -= serviceTime;
+					} else {
+						nextActivityStartTime = activity.getTheoreticalLatestOperationStartTime();
+					}
+
+				} else {
+					nextActivityStartTime = activity.getTheoreticalLatestOperationStartTime();
+				}
+
+				nextActivity = activity;
+			}
+
+			double possibleZeroWaitStart = route.getActivities().get(0).getTheoreticalEarliestOperationStartTime() + waitStartAtOpen;
+
+			double startWithWait = Math.min(nextActivityStartTime, possibleZeroWaitStart);
+
+			run(route, startWithWait);
+		}
+	}
+
+	private int run(VehicleRoute vehicleRoute, double startTime) {
+		TourActivity runPrevAct = vehicleRoute.getStart();
+
+		double prevActEndTime =
+				startTime - forwardTransportTime.getTransportTime(runPrevAct.getLocation(), vehicleRoute.getActivities().get(0).getLocation(), startTime, vehicleRoute.getDriver(),
+						vehicleRoute.getVehicle());
+
+		activityTimeMap = new HashMap<>();
+		int totalWaitingTime = 0;
+
+		for (TourActivity act : vehicleRoute.getActivities()) {
+			double transportTime =
+					forwardTransportTime.getTransportTime(runPrevAct.getLocation(), act.getLocation(), prevActEndTime, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+			double arrivalTimeAtCurrAct = prevActEndTime + transportTime;
+
+			double operationStartTime = Math.max(act.getTheoreticalEarliestOperationStartTime(), arrivalTimeAtCurrAct);
+
+			double operationEndTime = operationStartTime + activityCosts.getActivityDuration(act, arrivalTimeAtCurrAct, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+
+			ActivityTime activityTime = new ActivityTime(arrivalTimeAtCurrAct, operationEndTime, runPrevAct, prevActEndTime);
+			activityTimeMap.put(act, activityTime);
+
+			prevActEndTime = operationEndTime;
+			runPrevAct = act;
+
+			totalWaitingTime += operationStartTime - arrivalTimeAtCurrAct;
+		}
+
+		return totalWaitingTime;
+	}
+
+	/**
+	 * 
+	 * @param capacity
+	 * @return adding up milk capacities: NORMAL, GMO, COSHER
+	 */
+	private int sumCapacity(Capacity capacity) {
+		return capacity.get(0) + capacity.get(1) + capacity.get(2);
+	}
+
+	@Override
+	public void visit(TourActivity activity) {
+		if (activityPolicy == ActivityPolicy.SHORTEST_WAIT_TIME) {
+			ActivityTime act = activityTimeMap.get(activity);
+
+			prevAct = activity;
+			startAtPrevAct = act.getActEndTime();
+			actArrTime = act.getActArrTime();
+			actEndTime = act.getActEndTime();
+			capacity += sumCapacity(activity.getSize());
+		} else {
+			if (!beginFirst)
+				throw new IllegalStateException("never called begin. this however is essential here");
+			double transportTime = forwardTransportTime.getTransportTime(prevAct.getLocation(), activity.getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
+			double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
+
+			actArrTime = arrivalTimeAtCurrAct;
+			double operationStartTime;
+
+			if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS)) {
+				operationStartTime = Math.max(activity.getTheoreticalEarliestOperationStartTime(), arrivalTimeAtCurrAct);
+			} else if (activityPolicy.equals(ActivityPolicy.AS_SOON_AS_ARRIVED)) {
+				operationStartTime = actArrTime;
+			} else
+				operationStartTime = actArrTime;
+
+			double operationEndTime = operationStartTime + activityCosts.getActivityDuration(activity, actArrTime, route.getDriver(), route.getVehicle());
+
+			actEndTime = operationEndTime;
+
+			prevAct = activity;
+			startAtPrevAct = operationEndTime;
+		}
+	}
+
+	@Override
+	public void finish() {
+		double transportTime = forwardTransportTime.getTransportTime(prevAct.getLocation(), route.getEnd().getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
+		double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
+
+		if (this.activityPolicyConfiguration != null && this.activityPolicyConfiguration.getFactoryUnloadTimeFactor() != null &&
+				this.activityPolicyConfiguration.getFactoryStaticTime() != null) {
+			double operationTime = this.capacity * this.activityPolicyConfiguration.getFactoryUnloadTimeFactor();
+			double staticTime = this.activityPolicyConfiguration.getFactoryStaticTime();
+
+			actArrTime = arrivalTimeAtCurrAct;
+			actEndTime = arrivalTimeAtCurrAct + operationTime + staticTime;
+		} else {
+			actArrTime = arrivalTimeAtCurrAct;
+			actEndTime = arrivalTimeAtCurrAct;
+
+			beginFirst = false;
+		}
+
+	}
 
 }

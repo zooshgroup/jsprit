@@ -43,6 +43,8 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.FiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.InfiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
+import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
+import com.graphhopper.jsprit.core.util.ActivityPolicyConfiguration;
 import com.graphhopper.jsprit.core.util.NoiseMaker;
 import com.graphhopper.jsprit.core.util.RandomNumberGeneration;
 import com.graphhopper.jsprit.core.util.Solutions;
@@ -127,9 +129,10 @@ public class Jsprit {
         STRING_L_MIN("string_lmin"),
         STRING_L_MAX("string_lmax"),
         MIN_UNASSIGNED("min_unassigned"),
-        PROPORTION_UNASSIGNED("proportion_unassigned");
-
-
+        PROPORTION_UNASSIGNED("proportion_unassigned"),
+        ACTIVITY_POLICY("activity_policy"),
+        ACTIVITY_POLICY_CONFIGURATION_FACTORY_UNLOAD_TIME_FACTOR("activity_policy_configuration_factory_unload_time_factor"),
+        ACTIVITY_POLICY_CONFIGURATION_FACTORY_STATIC("activity_policy_configuration_factory_static");
 
         String paraName;
 
@@ -200,6 +203,7 @@ public class Jsprit {
             defaults.put(Parameter.STRING_K_MAX.toString(), "6");
             defaults.put(Parameter.STRING_L_MIN.toString(), "10");
             defaults.put(Parameter.STRING_L_MAX.toString(), "30");
+            defaults.put(Parameter.ACTIVITY_POLICY.toString(), ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS.toString());
 
             defaults.put(Strategy.WORST_BEST.toString(), "0.");
             defaults.put(Strategy.WORST_REGRET.toString(), "1.");
@@ -657,7 +661,11 @@ public class Jsprit {
         stringBest.addModule(configureModule(new RuinAndRecreateModule(Strategy.STRING_BEST.toString(), best, stringRuin)));
 
         PrettyAlgorithmBuilder prettyBuilder = PrettyAlgorithmBuilder.newInstance(vrp, vehicleFleetManager, stateManager, constraintManager);
-        prettyBuilder.setRandom(random);
+        prettyBuilder.withActivityPolicy(ActivityPolicy.valueOf(properties.getProperty(Parameter.ACTIVITY_POLICY.toString())));
+		prettyBuilder.withActivityPolicyConfiguration(
+				new ActivityPolicyConfiguration(properties.getProperty(Parameter.ACTIVITY_POLICY_CONFIGURATION_FACTORY_UNLOAD_TIME_FACTOR.toString()),
+						properties.getProperty(Parameter.ACTIVITY_POLICY_CONFIGURATION_FACTORY_STATIC.toString())));
+		prettyBuilder.setRandom(random);
         if (addCoreConstraints) {
             prettyBuilder.addCoreStateAndConstraintStuff();
         }
