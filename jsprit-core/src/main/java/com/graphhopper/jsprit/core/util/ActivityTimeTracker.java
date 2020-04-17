@@ -270,11 +270,12 @@ public class ActivityTimeTracker implements ActivityVisitor {
 
 		if (this.activityPolicyConfiguration != null && this.activityPolicyConfiguration.getFactoryUnloadTimeFactor() != null &&
 				this.activityPolicyConfiguration.getFactoryStaticTime() != null) {
-			double operationTime = this.capacity * this.activityPolicyConfiguration.getFactoryUnloadTimeFactor();
-			double staticTime = this.activityPolicyConfiguration.getFactoryStaticTime();
+			// double operationTime = this.capacity *
+			// this.activityPolicyConfiguration.getFactoryUnloadTimeFactor();
+			// double staticTime = this.activityPolicyConfiguration.getFactoryStaticTime();
 
 			actArrTime = arrivalTimeAtCurrAct;
-			actEndTime = arrivalTimeAtCurrAct + operationTime + staticTime;
+			actEndTime = arrivalTimeAtCurrAct; // + operationTime + staticTime;
 		} else {
 			actArrTime = arrivalTimeAtCurrAct;
 			actEndTime = arrivalTimeAtCurrAct;
