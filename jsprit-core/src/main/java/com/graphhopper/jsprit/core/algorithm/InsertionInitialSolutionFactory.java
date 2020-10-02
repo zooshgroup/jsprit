@@ -54,6 +54,7 @@ public final class InsertionInitialSolutionFactory implements InitialSolutionFac
         List<VehicleRoute> vehicleRoutes = new ArrayList<VehicleRoute>();
         vehicleRoutes.addAll(vrp.getInitialVehicleRoutes());
         Collection<Job> badJobs = insertion.insertJobs(vehicleRoutes, getUnassignedJobs(vrp));
+        badJobs = this.insertion.insertJobs(vehicleRoutes, badJobs);
         VehicleRoutingProblemSolution solution = new VehicleRoutingProblemSolution(vehicleRoutes, badJobs, Double.MAX_VALUE);
         double costs = solutionCostsCalculator.getCosts(solution);
         solution.setCost(costs);
