@@ -18,6 +18,7 @@
 package com.graphhopper.jsprit.core.problem.solution.route.state;
 
 import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.problem.solution.route.Tour;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
@@ -32,5 +33,7 @@ public interface RouteAndActivityStateGetter {
     public <T> T getRouteState(VehicleRoute route, StateId stateId, Class<T> type);
 
     public <T> T getRouteState(VehicleRoute route, Vehicle vehicle, StateId stateId, Class<T> type);
+    
+    public <T> T getTourState(Tour tour, StateId stateId, Class<T> type);
 
 }

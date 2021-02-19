@@ -52,4 +52,6 @@ public class InternalStates {
     public static final StateId EARLIEST_WITHOUT_WAITING = new StateFactory.StateIdImpl("earliest_without_waiting", 14);
 
     public static final StateId SWITCH_NOT_FEASIBLE = new StateFactory.StateIdImpl("switch_not_feasible", 15);
+    
+    public static final StateId TOUR_LOAD = new StateFactory.StateIdImpl("tour_load", 16);
 }

@@ -118,6 +118,8 @@ public class VehicleRoute {
         private final TourActivities tourActivities = new TourActivities();
 
         private final Set<Shipment> openShipments = new HashSet<Shipment>();
+        
+        private List<Tour> tours = new ArrayList<>();
 
         private JobActivityFactory jobActivityFactory = new JobActivityFactory() {
             
@@ -327,6 +329,8 @@ public class VehicleRoute {
 
     private TourActivities tourActivities;
 
+    private List<Tour> tours;
+    
     private Vehicle vehicle;
 
     private Driver driver;
@@ -346,6 +350,7 @@ public class VehicleRoute {
         this.tourActivities = TourActivities.copyOf(route.getTourActivities());
         this.vehicle = route.getVehicle();
         this.driver = route.getDriver();
+        this.tours = route.getTours();
     }
 
     /**
@@ -359,6 +364,7 @@ public class VehicleRoute {
         this.driver = builder.driver;
         this.start = builder.start;
         this.end = builder.end;
+        this.tours = builder.tours;
     }
 
     /**
@@ -477,5 +483,13 @@ public class VehicleRoute {
     public String toString() {
         return "[start=" + start + "][end=" + end + "][departureTime=" + start.getEndTime() + "][vehicle=" + vehicle + "][driver=" + driver + "][nuOfActs=" + tourActivities.getActivities().size() + "]";
     }
+
+	public List<Tour> getTours() {
+		return tours;
+	}
+
+	public void setTours(List<Tour> tours) {
+		this.tours = tours;
+	}
 
 }

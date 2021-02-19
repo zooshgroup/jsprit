@@ -27,6 +27,8 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.problem.solution.route.ReverseRouteActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.RouteActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.RouteVisitor;
+import com.graphhopper.jsprit.core.problem.solution.route.Tour;
+import com.graphhopper.jsprit.core.problem.solution.route.TourVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
@@ -53,6 +55,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
     private ReverseRouteActivityVisitor revRouteActivityVisitor = new ReverseRouteActivityVisitor();
 
     private Collection<RouteVisitor> routeVisitors = new ArrayList<RouteVisitor>();
+    private Collection<TourVisitor> tourVisitors = new ArrayList<TourVisitor>();
 
     private RuinListeners ruinListeners = new RuinListeners();
 
@@ -85,6 +88,8 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
     private Map<VehicleRoute, Object[][]> vehicleDependentRouteStateMap;
 
     private Object[][] routeStatesArr;
+    
+    private Map<Tour, Object[]> tourStateMap; 
 
     private Object[][][] vehicleDependentRouteStatesArr;
 
@@ -148,6 +153,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
             isIndexedBased = false;
             routeStateMap = new HashMap<VehicleRoute, Object[]>();
             vehicleDependentRouteStateMap = new HashMap<VehicleRoute, Object[][]>();
+            tourStateMap = new HashMap<>();
 //        }
         problemStates = new Object[initialStateArrayLength];
     }
@@ -200,6 +206,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
         else{
             routeStateMap.clear();
             vehicleDependentRouteStateMap.clear();
+            tourStateMap.clear();
         }
         Arrays.fill(problemStates,null);
     }
@@ -373,6 +380,25 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
         }
         return state;
     }
+    
+	@Override
+	public <T> T getTourState(Tour tour, StateId stateId, Class<T> type) {
+		if (tour == null)
+			return null;
+		T state = null;
+		if (isIndexedBased) {
+			throw new UnsupportedOperationException();
+		} else {
+			try {
+				if (tourStateMap.containsKey(tour)) {
+					state = type.cast(tourStateMap.get(tour)[stateId.getIndex()]);
+				}
+			} catch (ClassCastException e) {
+				throw getClassCastException(e, stateId, type.toString(), tourStateMap.get(tour)[stateId.getIndex()].getClass().toString());
+			}
+		}
+		return state;
+	}
 
     /**
      * Associates the specified activity and stateId to the state value. If a state value is already associated to the
@@ -485,6 +511,22 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
         }
 
     }
+    
+    public <T> void putTourState(Tour tour, StateId stateId, T state) {
+    	if (stateId.getIndex() < initialNoStates) StateFactory.throwReservedIdException(stateId.toString());
+    	putTypedInternalTourState(tour, stateId, state);
+    }
+    
+	<T> void putTypedInternalTourState(Tour tour, StateId stateId, T state) {
+		if (isIndexedBased) {
+			throw new UnsupportedOperationException();
+		} else {
+			if (!tourStateMap.containsKey(tour)) {
+				tourStateMap.put(tour, new Object[stateIndexCounter]);
+			}
+			tourStateMap.get(tour)[stateId.getIndex()] = state;
+		}
+	}
 
     /**
      * Adds state updater.
@@ -551,6 +593,10 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
     void addRouteVisitor(RouteVisitor routeVisitor) {
         routeVisitors.add(routeVisitor);
     }
+    
+    void addTourVisitor(TourVisitor routeVisitor) {
+        tourVisitors.add(routeVisitor);
+    }
 
     void addListener(RuinListener ruinListener) {
         ruinListeners.addListener(ruinListener);
@@ -568,6 +614,11 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
         for (RouteVisitor v : routeVisitors) {
             v.visit(inRoute);
         }
+		for (TourVisitor tourVisitor : tourVisitors) {
+			for (Tour tour : inRoute.getTours()) {
+				tourVisitor.visit(tour);
+			}
+		}
         routeActivityVisitor.visit(inRoute);
         revRouteActivityVisitor.visit(inRoute);
     }
@@ -627,6 +678,7 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
             addActivityVisitor(new UpdateMaxCapacityUtilisationAtActivitiesByLookingBackwardInRoute(this));
             addActivityVisitor(new UpdateMaxCapacityUtilisationAtActivitiesByLookingForwardInRoute(this));
             addActivityVisitor(new UpdateMaxCapacityUtilisationAtRoute(this));
+            addTourVisitor(new UpdateTourLoads(this));
         }
     }
 
