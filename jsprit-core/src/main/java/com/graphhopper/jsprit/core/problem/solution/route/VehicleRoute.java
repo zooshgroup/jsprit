@@ -365,6 +365,10 @@ public class VehicleRoute {
         this.start = builder.start;
         this.end = builder.end;
         this.tours = builder.tours;
+        if (builder.tours.isEmpty()) {
+        	this.tours.add(new Tour(this, 0));
+        } 
+        
     }
 
     /**
