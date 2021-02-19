@@ -22,7 +22,7 @@ package com.graphhopper.jsprit.core.algorithm.ruin;
 import com.graphhopper.jsprit.core.algorithm.ruin.listener.RuinListener;
 import com.graphhopper.jsprit.core.algorithm.ruin.listener.RuinListeners;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import com.graphhopper.jsprit.core.problem.job.FactoryDelivery;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.util.RandomNumberGeneration;
@@ -89,7 +89,7 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
 
     protected boolean removeJob(Job job, Collection<VehicleRoute> vehicleRoutes) {
         if (jobIsInitial(job)) return false;
-        if (job instanceof Delivery) return false;
+        if (job instanceof FactoryDelivery) return false;
         for (VehicleRoute route : vehicleRoutes) {
             if (removeJob(job, route)) {
                 return true;
