@@ -22,7 +22,7 @@ public class UpdateTourLoads implements StateUpdater, TourVisitor {
 			load = Capacity.addup(load, activity.getSize());
 		}
 
-		stateManager.putTypedInternalTourState(tour, InternalStates.TOUR_LOAD, load);
+		stateManager.putTypedInternalTourState(tour, InternalStates.LOAD, load);
 	}
 
 }

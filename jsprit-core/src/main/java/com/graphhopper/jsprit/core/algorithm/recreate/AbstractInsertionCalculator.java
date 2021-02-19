@@ -22,7 +22,9 @@ import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.ConstraintsStatus;
 import com.graphhopper.jsprit.core.problem.constraint.HardRouteConstraint;
+import com.graphhopper.jsprit.core.problem.constraint.HardTourConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
+import com.graphhopper.jsprit.core.problem.solution.route.Tour;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
@@ -42,6 +44,15 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
                 return emptyInsertionData;
             }
         }
+		for (Tour tour : insertionContext.getRoute().getTours()) {
+			for (HardTourConstraint hardTourConstraint : constraintManager.getHardTourConstraints()) {
+				if (!hardTourConstraint.fulfilled(insertionContext, tour)) {
+					InsertionData emptyInsertionData = new InsertionData.NoInsertionFound();
+					emptyInsertionData.addFailedConstrainName(hardTourConstraint.getClass().getSimpleName());
+					return emptyInsertionData;
+				}
+			}
+		}
         return null;
     }
 

@@ -20,6 +20,7 @@ package com.graphhopper.jsprit.core.problem.constraint;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
+import com.graphhopper.jsprit.core.problem.solution.route.Tour;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ import java.util.List;
  *
  * @author schroeder
  */
-public class ConstraintManager implements HardActivityConstraint, HardRouteConstraint, SoftActivityConstraint, SoftRouteConstraint {
+public class ConstraintManager implements HardActivityConstraint, HardRouteConstraint, SoftActivityConstraint, SoftRouteConstraint, HardTourConstraint {
 
 
     public static enum Priority {
@@ -51,6 +52,8 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
     private SoftActivityConstraintManager softActivityConstraintManager = new SoftActivityConstraintManager();
 
     private SoftRouteConstraintManager softRouteConstraintManager = new SoftRouteConstraintManager();
+    
+    private HardTourLevelConstraintManager hardTourLevelConstraintManager = new HardTourLevelConstraintManager();
 
     private VehicleRoutingProblem vrp;
 
@@ -95,6 +98,10 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
 //    public Collection<HardActivityConstraint> getHardActivityConstraints() {
 //        return actLevelConstraintManager.g;
 //    }
+    
+    public Collection<HardTourConstraint> getHardTourConstraints() {
+        return hardTourLevelConstraintManager.getConstraints();
+    }
 
     public DependencyType[] getDependencyTypes() {
         return dependencyTypes;
@@ -151,9 +158,12 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
 
     public void addLoadConstraint() {
         if (!loadConstraintsSet) {
-            addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
-            addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
-            addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
+            // addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
+            // addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
+            // addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
+        	
+        	addConstraint(new ServiceLoadTourLevelConstraint(stateManager));
+        	
             loadConstraintsSet = true;
         }
     }
@@ -182,6 +192,11 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
     public void addConstraint(SoftRouteConstraint softRouteConstraint) {
         softRouteConstraintManager.addConstraint(softRouteConstraint);
     }
+    
+    public void addConstraint(HardTourConstraint hardTourConstraint) {
+    	hardTourLevelConstraintManager.addConstraint(hardTourConstraint);
+    }
+
 
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
@@ -192,6 +207,11 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
     public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
         return actLevelConstraintManager.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
     }
+    
+	@Override
+	public boolean fulfilled(JobInsertionContext insertionContext, Tour tour) {
+		return hardTourLevelConstraintManager.fulfilled(insertionContext, tour);
+	}
 
     public Collection<Constraint> getConstraints() {
         List<Constraint> constraints = new ArrayList<Constraint>();
@@ -199,6 +219,7 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
         constraints.addAll(hardRouteConstraintManager.getConstraints());
         constraints.addAll(softActivityConstraintManager.getConstraints());
         constraints.addAll(softRouteConstraintManager.getConstraints());
+        constraints.addAll(hardTourLevelConstraintManager.getConstraints());
         return Collections.unmodifiableCollection(constraints);
     }
 
