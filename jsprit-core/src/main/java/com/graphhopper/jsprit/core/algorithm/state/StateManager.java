@@ -631,6 +631,11 @@ public class StateManager implements RouteAndActivityStateGetter, IterationStart
             for (RouteVisitor v : routeVisitors) {
                 v.visit(route);
             }
+            for (TourVisitor tourVisitor : tourVisitors) {
+    			for (Tour tour : route.getTours()) {
+    				tourVisitor.visit(tour);
+    			}
+    		}
             routeActivityVisitor.visit(route);
             revRouteActivityVisitor.visit(route);
         }
