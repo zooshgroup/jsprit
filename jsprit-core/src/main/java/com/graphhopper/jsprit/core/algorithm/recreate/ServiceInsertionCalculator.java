@@ -139,19 +139,15 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
 			boolean tourEnd = false;
 			while (!tourEnd) {
 				TourActivity nextAct;
-				if (activityIterator.hasNext())
+				if (activityIterator.hasNext()) {
 					nextAct = activityIterator.next();
-				else {
+				} else {
+					tourEnd = true;
 					if (tour.getTourIndex() == currentRoute.getTours().size() - 1) {
 						nextAct = end;
 					} else {
-						nextAct = currentRoute.getTours().get(tour.getTourIndex() + 1).getTourActivities().getActivities().get(0);
-						if (nextAct == null) {
-							throw new IllegalStateException(); // TODO this may happen
-						}
+						continue;
 					}
-
-					tourEnd = true;
 				}
 				if (hardTourConstraintsFulfilled) {
 					boolean not_fulfilled_break = true;
