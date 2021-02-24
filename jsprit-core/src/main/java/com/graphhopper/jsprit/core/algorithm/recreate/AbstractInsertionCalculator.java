@@ -18,6 +18,10 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.ConstraintsStatus;
@@ -26,10 +30,6 @@ import com.graphhopper.jsprit.core.problem.constraint.HardTourConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.Tour;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by schroeder on 06/02/17.
@@ -44,17 +44,17 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
                 return emptyInsertionData;
             }
         }
-		for (Tour tour : insertionContext.getRoute().getTours()) {
-			for (HardTourConstraint hardTourConstraint : constraintManager.getHardTourConstraints()) {
-				if (!hardTourConstraint.fulfilled(insertionContext, tour)) {
-					InsertionData emptyInsertionData = new InsertionData.NoInsertionFound();
-					emptyInsertionData.addFailedConstrainName(hardTourConstraint.getClass().getSimpleName());
-					return emptyInsertionData;
-				}
-			}
-		}
         return null;
     }
+
+	boolean checkHardTourConstraints(JobInsertionContext insertionContext, Tour tour, ConstraintManager constraintManager) {
+		for (HardTourConstraint hardTourConstraint : constraintManager.getHardTourConstraints()) {
+			if (!hardTourConstraint.fulfilled(insertionContext, tour)) {
+				return false;
+			}
+		}
+		return true;
+	}
 
     ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime, Collection<String> failedActivityConstraints, ConstraintManager constraintManager) {
         ConstraintsStatus notFulfilled = null;
