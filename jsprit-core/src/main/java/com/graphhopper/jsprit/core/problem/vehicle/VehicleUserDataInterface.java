@@ -1,9 +1,11 @@
 package com.graphhopper.jsprit.core.problem.vehicle;
 
+import com.graphhopper.jsprit.core.algorithm.recreate.InsertionData;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 
 public interface VehicleUserDataInterface {
 
-	public boolean canInsert(VehicleRoute vehicleRoute, Vehicle newVehicle, Job j);
+	public boolean canInsert(VehicleRoute vehicleRoute, InsertionData insertionData, Job j);
+	
 }

@@ -133,6 +133,7 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
 		int actIndex = 0;
 
 		for (Tour tour : currentRoute.getTours()) {
+			int tourActIndex = 0;
 			boolean hardTourConstraintsFulfilled = checkHardTourConstraints(insertionContext, tour, constraintManager);
 			
 			Iterator<TourActivity> activityIterator = tour.getTourActivities().getActivities().iterator();
@@ -156,6 +157,8 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
 						deliveryAct2Insert.setTheoreticalLatestOperationStartTime(timeWindow.getEnd());
 						ActivityContext activityContext = new ActivityContext();
 						activityContext.setInsertionIndex(actIndex);
+						activityContext.setTour(tour);
+						activityContext.setTourInsertionIndex(tourActIndex);
 						insertionContext.setActivityContext(activityContext);
 						ConstraintsStatus status =
 								fulfilled(insertionContext, prevAct, deliveryAct2Insert, nextAct, prevActStartTime, failedActivityConstraints, constraintManager);
@@ -181,6 +184,7 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
 						activityCosts.getActivityDuration(nextAct, nextActArrTime, newDriver, newVehicle);
 				prevAct = nextAct;
 				actIndex++;
+				tourActIndex++;
 			}
 		}
 

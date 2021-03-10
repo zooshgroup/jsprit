@@ -18,6 +18,8 @@
 
 package com.graphhopper.jsprit.core.problem.misc;
 
+import com.graphhopper.jsprit.core.problem.solution.route.Tour;
+
 /**
  * Provides insertion context information about a particular activity.
  */
@@ -28,6 +30,10 @@ public class ActivityContext {
     private double endTime;
 
     private int insertionIndex;
+    
+    private Tour tour;
+    
+    private int tourInsertionIndex;
 
     /**
      * Returns arrival time at associated activity.
@@ -92,4 +98,21 @@ public class ActivityContext {
     public void setInsertionIndex(int insertionIndex) {
         this.insertionIndex = insertionIndex;
     }
+
+	public Tour getTour() {
+		return tour;
+	}
+
+	public void setTour(Tour tour) {
+		this.tour = tour;
+	}
+
+	public int getTourInsertionIndex() {
+		return tourInsertionIndex;
+	}
+
+	public void setTourInsertionIndex(int tourInsertionIndex) {
+		this.tourInsertionIndex = tourInsertionIndex;
+	}    
+    
 }
