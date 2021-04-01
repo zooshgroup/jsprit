@@ -2,32 +2,27 @@ package com.graphhopper.jsprit.core.util;
 
 public class ActivityPolicyConfiguration {
 
-	private Double factoryUnloadTimeFactor;
-	private Double factoryStaticTime;
+	private double factoryUnloadTimeFactor;
+	private double factoryStaticTime;
 
-	public ActivityPolicyConfiguration(String factoryUnloadTimeFactor, String factoryStaticTime) {
-		if (factoryUnloadTimeFactor != null) {
-			this.factoryUnloadTimeFactor = Double.parseDouble(factoryUnloadTimeFactor);
-		}
-
-		if (factoryUnloadTimeFactor != null) {
-			this.factoryStaticTime = Double.parseDouble(factoryStaticTime);
-		}
+	public ActivityPolicyConfiguration(double factoryUnloadTimeFactor, double factoryStaticTime) {
+		this.factoryUnloadTimeFactor = factoryUnloadTimeFactor;
+		this.factoryStaticTime = factoryStaticTime;
 	}
 
-	public Double getFactoryUnloadTimeFactor() {
+	public double getFactoryUnloadTimeFactor() {
 		return factoryUnloadTimeFactor;
 	}
 
-	public void setFactoryUnloadTimeFactor(Double factoryUnloadTimeFactor) {
+	public void setFactoryUnloadTimeFactor(double factoryUnloadTimeFactor) {
 		this.factoryUnloadTimeFactor = factoryUnloadTimeFactor;
 	}
 
-	public Double getFactoryStaticTime() {
+	public double getFactoryStaticTime() {
 		return factoryStaticTime;
 	}
 
-	public void setFactoryStaticTime(Double factoryStaticTime) {
+	public void setFactoryStaticTime(double factoryStaticTime) {
 		this.factoryStaticTime = factoryStaticTime;
 	}
 

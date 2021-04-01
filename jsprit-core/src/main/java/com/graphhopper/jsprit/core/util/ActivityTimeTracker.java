@@ -268,8 +268,7 @@ public class ActivityTimeTracker implements ActivityVisitor {
 		double transportTime = forwardTransportTime.getTransportTime(prevAct.getLocation(), route.getEnd().getLocation(), startAtPrevAct, route.getDriver(), route.getVehicle());
 		double arrivalTimeAtCurrAct = startAtPrevAct + transportTime;
 
-		if (this.activityPolicyConfiguration != null && this.activityPolicyConfiguration.getFactoryUnloadTimeFactor() != null &&
-				this.activityPolicyConfiguration.getFactoryStaticTime() != null) {
+		if (this.activityPolicyConfiguration != null) {
 			// double operationTime = this.capacity *
 			// this.activityPolicyConfiguration.getFactoryUnloadTimeFactor();
 			// double staticTime = this.activityPolicyConfiguration.getFactoryStaticTime();

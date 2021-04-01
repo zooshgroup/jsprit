@@ -32,8 +32,6 @@ import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
-import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
-import com.graphhopper.jsprit.core.util.ActivityPolicyConfiguration;
 
 /**
  * Created by schroeder on 10.12.14.
@@ -57,9 +55,6 @@ public class PrettyAlgorithmBuilder {
     private boolean coreStuff = false;
 
     private SolutionCostCalculator objectiveFunction = null;
-    
-    private ActivityPolicy activityPolicy = ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS;
-	private ActivityPolicyConfiguration activityPolicyConfiguration;
 
     public static PrettyAlgorithmBuilder newInstance(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
         return new PrettyAlgorithmBuilder(vrp, fleetManager, stateManager, constraintManager);
@@ -82,16 +77,6 @@ public class PrettyAlgorithmBuilder {
         searchStrategyManager.addStrategy(strategy, weight);
         return this;
     }
-    
-	public PrettyAlgorithmBuilder withActivityPolicy(ActivityPolicy activityPolicy) {
-		this.activityPolicy = activityPolicy;
-		return this;
-	}
-	
-	public PrettyAlgorithmBuilder withActivityPolicyConfiguration(ActivityPolicyConfiguration activityPolicyConfiguration) {
-		this.activityPolicyConfiguration = activityPolicyConfiguration;
-		return this;
-	}
 
     public PrettyAlgorithmBuilder constructInitialSolutionWith(InsertionStrategy insertionStrategy, SolutionCostCalculator objFunction) {
         this.iniInsertionStrategy = insertionStrategy;
@@ -101,7 +86,7 @@ public class PrettyAlgorithmBuilder {
 
     public VehicleRoutingAlgorithm build() {
         if (coreStuff) {
-			AlgorithmUtil.addCoreConstraints(activityPolicy, activityPolicyConfiguration, constraintManager, stateManager, vrp);
+			AlgorithmUtil.addCoreConstraints(constraintManager, stateManager, vrp);
         }
         VehicleRoutingAlgorithm vra = new VehicleRoutingAlgorithm(vrp, searchStrategyManager, objectiveFunction);
         vra.addListener(stateManager);

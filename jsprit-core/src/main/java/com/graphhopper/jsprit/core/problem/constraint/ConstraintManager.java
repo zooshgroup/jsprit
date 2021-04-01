@@ -158,15 +158,21 @@ public class ConstraintManager implements HardActivityConstraint, HardRouteConst
 
     public void addLoadConstraint() {
         if (!loadConstraintsSet) {
-            // addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
-            // addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
-            // addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
-        	
-        	addConstraint(new ServiceLoadTourLevelConstraint(stateManager));
+            addConstraint(new PickupAndDeliverShipmentLoadActivityLevelConstraint(stateManager), Priority.CRITICAL);
+            addConstraint(new ServiceLoadRouteLevelConstraint(stateManager));
+            addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), Priority.LOW);
         	
             loadConstraintsSet = true;
         }
     }
+    
+	public void addTourLoadCostraintSet() {
+		if (!loadConstraintsSet) {
+			addConstraint(new ServiceLoadTourLevelConstraint(stateManager));
+
+			loadConstraintsSet = true;
+		}
+	}
 
     public void addSkillsConstraint() {
         if (!skillconstraintSet) {

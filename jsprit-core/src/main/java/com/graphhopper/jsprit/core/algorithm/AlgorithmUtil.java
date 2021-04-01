@@ -36,14 +36,13 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker.ActivityPolicy;
-import com.graphhopper.jsprit.core.util.ActivityPolicyConfiguration;
 
 /**
  * Created by schroeder on 02/08/16.
  */
 public class AlgorithmUtil {
 
-	public static void addCoreConstraints(ActivityPolicy activityPolicy, ActivityPolicyConfiguration activityPolicyConfiguration, ConstraintManager constraintManager, StateManager stateManager, final VehicleRoutingProblem vrp) {
+	public static void addCoreConstraints(ConstraintManager constraintManager, StateManager stateManager, final VehicleRoutingProblem vrp) {
         constraintManager.addTimeWindowConstraint();
         constraintManager.addLoadConstraint();
         constraintManager.addSkillsConstraint();
@@ -74,8 +73,8 @@ public class AlgorithmUtil {
         stateManager.addStateUpdater(twUpdater);
         stateManager.updateSkillStates();
 
-        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), activityPolicy, activityPolicyConfiguration, vrp.getActivityCosts()));
-		stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager, activityPolicy, activityPolicyConfiguration));
+        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(),  vrp.getActivityCosts()));
+		stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager));
         stateManager.addStateUpdater(new UpdateFutureWaitingTimes(stateManager, vrp.getTransportCosts()));
     }
 
