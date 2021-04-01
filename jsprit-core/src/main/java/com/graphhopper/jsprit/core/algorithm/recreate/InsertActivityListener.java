@@ -18,13 +18,7 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.graphhopper.jsprit.core.problem.solution.route.Tour;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.FactoryDeliverService;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 /**
  * Created by schroeder on 19/05/15.
@@ -46,19 +40,7 @@ class InsertActivityListener implements EventListener {
     }
     
     private void recalculateTours(VehicleRoute vehicleRoute) {
-		List<Tour> tours = new ArrayList<>();
-		int index = 0;
-		
-		Tour tour = new Tour(vehicleRoute, index);
-		for (TourActivity tourActivity : vehicleRoute.getActivities()) {
-			tour.getTourActivities().addActivity(tourActivity);
-			if (tourActivity instanceof FactoryDeliverService) {
-				tours.add(tour);
-				tour = new Tour(vehicleRoute, ++index);
-			}
-		}
-		
-		vehicleRoute.setTours(tours);
+    	vehicleRoute.updateTours();
 	}
 
 }
