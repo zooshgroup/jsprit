@@ -331,6 +331,7 @@ public class ShipmentInsertionCalculatorFlexTest {
 
         inserter.insertJob(shipment, new InsertionData(0, 0, 0, vehicle, null), route);
         inserter.insertJob(shipment2, new InsertionData(0, 1, 2, vehicle, null), route);
+        route.updateTours();
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateLoadStates();
