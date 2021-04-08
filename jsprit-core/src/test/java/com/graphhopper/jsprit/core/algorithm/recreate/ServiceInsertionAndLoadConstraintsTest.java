@@ -127,7 +127,6 @@ public class ServiceInsertionAndLoadConstraintsTest {
 
         Inserter inserter = new Inserter(new InsertionListeners(), vrp);
         inserter.insertJob(delivery, new InsertionData(0, 0, 0, vehicle, null), route);
-        route.updateTours();
         
         JobActivityFactory activityFactory = new JobActivityFactory() {
             @Override

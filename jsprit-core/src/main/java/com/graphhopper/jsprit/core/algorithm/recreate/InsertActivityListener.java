@@ -18,8 +18,6 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-
 /**
  * Created by schroeder on 19/05/15.
  */
@@ -35,12 +33,7 @@ class InsertActivityListener implements EventListener {
                 }
             }
             insertActivity.getVehicleRoute().getTourActivities().addActivity(insertActivity.getIndex(), ((InsertActivity) event).getActivity());
-            recalculateTours(insertActivity.getVehicleRoute());
         }
     }
-    
-    private void recalculateTours(VehicleRoute vehicleRoute) {
-    	vehicleRoute.updateTours();
-	}
 
 }

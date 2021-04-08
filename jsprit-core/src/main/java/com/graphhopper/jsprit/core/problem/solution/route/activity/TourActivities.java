@@ -32,6 +32,11 @@ public class TourActivities {
     public static TourActivities copyOf(TourActivities tourActivities) {
         return new TourActivities(tourActivities);
     }
+    
+    public interface TourActivitiesListener {
+    	void activityAdded(TourActivity act);
+    	void activityRemoved(TourActivity act);
+    }
 
     public static class ReverseActivityIterator implements Iterator<TourActivity> {
 
@@ -67,6 +72,8 @@ public class TourActivities {
         }
     }
 
+    private final List<TourActivitiesListener> tourActivitiesListeners = new ArrayList<>();
+    
     private final ArrayList<TourActivity> tourActivities = new ArrayList<TourActivity>();
 
     private final Set<Job> jobs = new HashSet<Job>();
@@ -138,6 +145,7 @@ public class TourActivities {
                 if (job.equals(underlyingJob)) {
                     iterator.remove();
                     activityRemoved = true;
+                    notifyActivityRemoved(c);
                 }
             }
         }
@@ -177,6 +185,7 @@ public class TourActivities {
         if (!jobIsAlsoAssociateToOtherActs && actRemoved) {
             jobs.remove(job);
         }
+        notifyActivityRemoved(activity);
         return actRemoved;
     }
 
@@ -208,6 +217,7 @@ public class TourActivities {
             tourActivities.add(act);
         }
         addJob(act);
+        notifyActivityAdded(act);
     }
 
     /**
@@ -222,6 +232,7 @@ public class TourActivities {
             throw new IllegalArgumentException("act " + act + " already in tour. cannot add act twice.");
         tourActivities.add(act);
         addJob(act);
+        notifyActivityAdded(act);
     }
 
     private void addJob(TourActivity act) {
@@ -247,5 +258,16 @@ public class TourActivities {
         return backward;
     }
 
+	private void notifyActivityAdded(TourActivity act) {
+		this.tourActivitiesListeners.forEach(l -> l.activityAdded(act));
+	}
+	
+	private void notifyActivityRemoved(TourActivity act) {
+		this.tourActivitiesListeners.forEach(l -> l.activityRemoved(act));
+	}
+
+	public void addTourActivitiesListener(TourActivitiesListener listener) {
+		this.tourActivitiesListeners.add(listener);
+    }
 
 }

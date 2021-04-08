@@ -24,6 +24,7 @@ import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.driver.DriverImpl;
 import com.graphhopper.jsprit.core.problem.job.*;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.*;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivities.TourActivitiesListener;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 
@@ -350,7 +351,8 @@ public class VehicleRoute {
         this.driver = route.getDriver();
         this.tours = route.getTours();
         this.updateTours();
-    }
+        addTourActivitiesListener(tourActivities);
+	}
 
     /**
      * Constructs route.
@@ -363,10 +365,25 @@ public class VehicleRoute {
         this.driver = builder.driver;
         this.start = builder.start;
         this.end = builder.end;
-        this.updateTours();        
+        this.updateTours();
+        addTourActivitiesListener(tourActivities);
     }
     
-    public void updateTours() {
+    private void addTourActivitiesListener(TourActivities tourActivities) {
+		tourActivities.addTourActivitiesListener(new TourActivitiesListener() {
+			@Override
+			public void activityAdded(TourActivity act) {
+				updateTours();
+			}
+
+			@Override
+			public void activityRemoved(TourActivity act) {
+				updateTours();
+			}
+		});
+	}
+    
+    private void updateTours() {
     	tours = new ArrayList<>();
 		int index = 0;
 		
